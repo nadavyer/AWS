@@ -58,8 +58,10 @@ public class S3 {
 
     // remove file from bucket
     public static void removeFile(String key){
+
         s3.deleteObject(bucketName, key);
     }
+
     // list files in bucket (debugging)
     public static void listFiles(String bucketName){
         ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()

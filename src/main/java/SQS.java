@@ -1,3 +1,6 @@
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
@@ -5,13 +8,19 @@ import com.amazonaws.services.sqs.model.*;
 import java.util.List;
 
 public class SQS {
-    private AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+
+    private AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
+    private AmazonSQS sqs = AmazonSQSClientBuilder.standard()
+            .withCredentials(credentialsProvider)
+            .withRegion("us-east-1")
+            .build();
     private String managerQURL;
     private String workersQURL;
 
     public SQS() {
-        CreateQueueRequest managerQReq = new CreateQueueRequest("managerQ3");  //TODO: change name?
-        CreateQueueRequest workersQReq = new CreateQueueRequest("workersQ3");
+
+        CreateQueueRequest managerQReq = new CreateQueueRequest("managerSQS");
+        CreateQueueRequest workersQReq = new CreateQueueRequest("workersQS");
 
         managerQURL = sqs.createQueue(managerQReq).getQueueUrl();
         workersQURL = sqs.createQueue(workersQReq).getQueueUrl();
@@ -22,11 +31,11 @@ public class SQS {
         return sqs.createQueue(userQReq).getQueueUrl();
     }
 
-    // send message to q
+    // send message to q = M/W
     public void sendMessage(String q, String msg) {
 
         try {
-            String qURL = getQURL(q);
+            String qURL = getQURL(q); //return M
             sqs.sendMessage(new SendMessageRequest(qURL, msg));
         } catch (Exception e) {
             e.printStackTrace();

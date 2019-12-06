@@ -21,10 +21,13 @@ public class LocalApplication {
             //todo: activate manager
         }
 
+        //upload data file to S3 bucket and return its key
         S3.createBucket();
         String inputFileKey = S3.uploadFile(inputFile);
 
-        SQS sqs = new SQS();
+        //create sqs and send to the manager the url of s3 where data stored
+        SQS localAppQ = new SQS();
+        String localAppQUrl = localAppQ.createUserQ(userAppID);
     }
 
     private static boolean managerIsUp() {

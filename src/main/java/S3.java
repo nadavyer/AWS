@@ -1,34 +1,18 @@
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 
 import java.io.File;
 
 public class S3 {
 
-//    private static AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
-    private static AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
     private static AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-            .withCredentials(credentialsProvider)
+            .withCredentials(Credentials.getCredentials())
             .withRegion("us-east-1")
             .build();
 
-
-//    String directoryName = args[0];
-
-    public static final   String  bucketName = credentialsProvider.getCredentials().getAWSAccessKeyId().replace('A','a').
-            replace('B','b').replace('C','c').replace('D','d').replace('E','e')
-            .replace('F','f').replace('G','g').replace('H','h').replace('I','i')
-            .replace('J','j').replace('K','k').replace('L','l').replace('M','m')
-            .replace('N','n').replace('O','o').replace('P','p').replace('Q','q')
-            .replace('R','r').replace('S','s').replace('T','t').replace('U','u')
-            .replace('V','v').replace('W','w').replace('X','x').replace('Y','y')
-            .replace('Z','z');
-    String key=null;
+    public static final   String  bucketName = Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
 
     public static void createBucket() {
         System.out.println("Creating bucket " + bucketName + "\n");
@@ -38,7 +22,7 @@ public class S3 {
     // upload file to bucket
     public static String uploadFile(File file) {
         System.out.println("Uploading a new file to bucket");
-        String key = file.getName().replace('\\', '-').replace('/', '-').replace(':', '-');
+        String key = file.getName(); //.replace('\\', '-').replace('/', '-').replace(':', '-');
         PutObjectRequest req = new PutObjectRequest(bucketName, key, file);
         req.setCannedAcl(CannedAccessControlList.PublicRead);
         s3.putObject(req);

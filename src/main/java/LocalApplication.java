@@ -13,6 +13,7 @@ public class LocalApplication {
         File inputFile = new File(args[0]);
         File outputFile = new File(args[1]);
         String nReviewPerWorker = args[2];
+        Credentials.setCredentials();
         boolean terminate = false;
         if (args.length > 3 ) {
             terminate = true;

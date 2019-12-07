@@ -1,6 +1,3 @@
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
@@ -9,9 +6,9 @@ import java.util.List;
 
 public class SQS {
 
-    private AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
+//    private AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
     private AmazonSQS sqs = AmazonSQSClientBuilder.standard()
-            .withCredentials(credentialsProvider)
+            .withCredentials(Credentials.credentialsProvider)
             .withRegion("us-east-1")
             .build();
     private String managerQURL;

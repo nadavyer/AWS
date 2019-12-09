@@ -6,9 +6,8 @@ import java.util.List;
 
 public class SQS {
 
-//    private AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
     private AmazonSQS sqs = AmazonSQSClientBuilder.standard()
-            .withCredentials(Credentials.credentialsProvider)
+            .withCredentials(Credentials.getCredentials())
             .withRegion("us-east-1")
             .build();
     private String managerQURL;
@@ -17,7 +16,7 @@ public class SQS {
     public SQS() {
 
         CreateQueueRequest managerQReq = new CreateQueueRequest("managerSQS");
-        CreateQueueRequest workersQReq = new CreateQueueRequest("workersQS");
+        CreateQueueRequest workersQReq = new CreateQueueRequest("workerSQS");
 
         managerQURL = sqs.createQueue(managerQReq).getQueueUrl();
         workersQURL = sqs.createQueue(workersQReq).getQueueUrl();
@@ -57,18 +56,15 @@ public class SQS {
     }
 
     // delete message
-    public boolean removeMessage(String q, Message msg) {
+    public void removeMessage(String q, Message msg) {
         try {
             String qURL = getQURL(q);
             String messageRecieptHandle = msg.getReceiptHandle();
             DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(qURL, messageRecieptHandle);
-            if (sqs.deleteMessage(deleteMessageRequest) != null) {
-                return true;
-            }
+            sqs.deleteMessage(deleteMessageRequest);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
     }
 
     public void setMsgVisibility(String q, String msgReceipt, int timeout) {

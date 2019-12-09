@@ -2,7 +2,6 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.s3.model.S3Object;
 
 import java.io.File;
-import java.util.List;
 
 public class Test {
 

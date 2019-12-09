@@ -1,11 +1,22 @@
 public class Review {
 
-    private String id;
-    private String link;
-    private String title;
-    private String text;
-    private int rating;
-    private String author;
+    protected String id;
+    protected String link;
+    protected String title;
+    protected String text;
+    protected int rating;
+    protected String author;
+    protected String date;
+
+    public Review(String id, String link, String title, String text, int rating, String author, String date) {
+        this.id = id;
+        this.link = link;
+        this.title = title;
+        this.text = text;
+        this.rating = rating;
+        this.author = author;
+        this.date = date;
+    }
 
     public String getId() {
         return id;
@@ -35,7 +46,6 @@ public class Review {
         return date;
     }
 
-    private String date;
 
     @Override
     public String toString() {

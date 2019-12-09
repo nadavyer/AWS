@@ -1,5 +1,7 @@
+import java.io.IOException;
+import java.io.PrintWriter;
 
-
+import static java.lang.Thread.sleep;
 
 public class Utills {
 
@@ -14,5 +16,20 @@ public class Utills {
                 .replace('Z','z');
     }
 
+    public static void sleepMs(int ms) {
+        try {
+            sleep(ms);
+        }
+        catch (InterruptedException ignored) {}
+    }
 
+    public static void stringToText(String filename, String outputText) throws IOException {
+        try {
+            PrintWriter pw = new PrintWriter(filename + ".txt");
+            pw.println(outputText);
+            pw.close();
+        } catch (IOException e) {
+            throw new IOException("stringToText fail");
+        }
+    }
 }

@@ -45,7 +45,7 @@ public class EC2 {
 //            else if(key.equals("worker")){
 //                imageId = "ami-0fa2497f50bf0ce72"; //Image with java, maven, the updated jar file of the worker
 //                userData = firstLine + "java -jar  /home/ec2-user/worker.jar\r\n";
-                firstLine + "java -cp .:yourjar.jar:stanford-corenlp-3.3.0.jar:stanford-corenlp-3.3.0-models.jar:ejml-0.23.jar:jollyday-0.4.7.jar Worker"
+//                firstLine + "java -cp .:yourjar.jar:stanford-corenlp-3.3.0.jar:stanford-corenlp-3.3.0-models.jar:ejml-0.23.jar:jollyday-0.4.7.jar Worker";
 //            }
 
             RunInstancesRequest request = new RunInstancesRequest(imageId, 1, 1);

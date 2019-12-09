@@ -9,19 +9,19 @@ import edu.stanford.nlp.util.CoreMap;
 import java.util.Properties;
 
 
-public class Analyser {
+public class SentimentAnalyser {
 
     private StanfordCoreNLP sentimentPipeline;
 
 
-    public Analyser() {
+    public SentimentAnalyser() {
         Properties props = new Properties();
         props.put("annotators", "tokenize, ssplit, parse, sentiment");
         sentimentPipeline = new StanfordCoreNLP(props);
     }
 
 
-    public int findSentiment(String review) {
+    public Integer findSentiment(String review) {
 
         int mainSentiment = 0;
         if (review!= null && review.length() > 0) {
@@ -44,7 +44,7 @@ public class Analyser {
     }
 
 
-    public boolean isSarcastic(int rating, int sentimentAnalysis) {
+    public Boolean isSarcastic(int rating, int sentimentAnalysis) {
         if (rating == 5) {
             return sentimentAnalysis == 0 || sentimentAnalysis == 1;
         }

@@ -25,9 +25,9 @@ public class EntityRecognition {
     }
 
 
-    public StringBuilder stringifyEntities(String review){
+    public String stringifyEntities(String review){
 
-        StringBuilder output= new StringBuilder();
+        StringBuilder output= new StringBuilder("[ ");
         // create an empty Annotation just with the given text
         Annotation document = new Annotation(review);
 
@@ -46,9 +46,9 @@ public class EntityRecognition {
                 String word = token.get(TextAnnotation.class);
                 // this is the NER label of the token
                 String ne = token.get(NamedEntityTagAnnotation.class);
-                output.append("\t|").append(word).append(":").append(ne).append("|");
+                output.append(word).append(":").append(ne).append(", ");
             }
         }
-        return output;
+        return output.append("]").toString();
     }
 }

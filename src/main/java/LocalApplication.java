@@ -49,6 +49,8 @@ public class LocalApplication {
             if (msg == null) {
                 try {
                     sleep(500);
+                    System.out.println("localApp is sleeping!");
+                    continue;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

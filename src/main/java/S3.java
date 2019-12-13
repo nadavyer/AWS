@@ -12,7 +12,7 @@ public class S3 {
             .withRegion("us-east-1")
             .build();
 
-    public static final   String  bucketName = Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
+    public static final   String  bucketName =  "akiax7xguadhih6xjl6n"; //Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
 
     public static void createBucket() {
         System.out.println("Creating bucket " + bucketName + "\n");

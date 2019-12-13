@@ -10,7 +10,7 @@ import edu.stanford.nlp.util.CoreMap;
 import java.util.List;
 import java.util.Properties;
 
-//import edu.stanford.nlp.rnn.RNNCoreAnnotations;
+import edu.stanford.nlp.rnn.RNNCoreAnnotations;
 
 
 public class EntityRecognition {

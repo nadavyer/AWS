@@ -22,8 +22,10 @@ public class Manager {
 
         try {
             while (true) {
+
                 Message msg = sqs.getMessage("M");
                 if (msg == null) {
+                    System.out.println("manager is sleeping!");
                     Utills.sleepMs(20);
                     continue;
                 }
@@ -64,23 +66,35 @@ public class Manager {
                         }
 
                         S3Object inputFile = S3.downloadFile(inputFileKey); //download from bucket
+                        System.out.println("finished downloading");
                         String inputData = IOUtils.toString(inputFile.getObjectContent());
                         Gson gson = new Gson();
                         TitleReviews[] titleRev = gson.fromJson(inputData, TitleReviews[].class);
                         int reviewsCount = getReviewsCount(titleRev);
+                        System.out.println("the number of review is: " + reviewsCount);
                         int neededWorkersCount = Math.max(1, (reviewsCount / n) - workerCount);
-                        fillUpJobsQ(titleRev, sqs, localAppCount);
+                        System.out.println("the needed worker num is: " + neededWorkersCount);
                         while (neededWorkersCount != 0) {
                             EC2.runMachines("worker", Integer.toString(workerCount));
                             neededWorkersCount--;
                             workerCount++;
                         }
+                        System.out.println("manager is filling jobs q of user");
+                        fillUpJobsQ(titleRev, sqs, localAppCount);
+                        System.out.println("manager finished filling up user q ");
+
                         LocalAppsHandler localApp = new LocalAppsHandler(userID, msgCount, "", userQUrl);
                         LocalAppsHandlers.add(localApp);
                         localAppCount++;
                     }
 
                 }
+                else if (taskType.equals("done review")) {
+                    System.out.println("THE MSG FROM WORKER IS!:"); //todo: need to process the msg from the worker
+                    System.out.println(msgBody);
+                }
+
+
 
                 if (terminate && lastUser) {
                     // iterate over all userapps, wait untill all active messages = 0
@@ -119,10 +133,10 @@ public class Manager {
     }
 
     private static void fillUpJobsQ(TitleReviews[] titleRev, SQS sqs, int localAppCount) {
+        Gson gson = new Gson();
         for (TitleReviews titleReview : titleRev) {
             for (int j = 0; j < titleReview.getReviews().length; j++) {
                 Review review = titleReview.getReviews()[j];
-                Gson gson = new Gson();
                 sqs.sendMessage("W",  "new review task\n" + localAppCount+ "\n" + gson.toJson(review));
             }
         }

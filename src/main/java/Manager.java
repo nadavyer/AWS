@@ -59,13 +59,13 @@ public class Manager {
                         String inputFileKey = parts[1];
                         String userID = parts[2];
                         String userQUrl = parts[3];
-
+                        String bucketName = parts[4];
 
                         if (userID.equals(userIdToTerminate)) {
                             lastUser = true;
                         }
 
-                        S3Object inputFile = S3.downloadFile(inputFileKey); //download from bucket
+                        S3Object inputFile = S3.downloadFile(bucketName, inputFileKey); //download from bucket
                         System.out.println("finished downloading");
                         String inputData = IOUtils.toString(inputFile.getObjectContent());
                         Gson gson = new Gson();

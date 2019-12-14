@@ -12,15 +12,14 @@ public class S3 {
             .withRegion("us-east-1")
             .build();
 
-    public static final   String  bucketName =  "akiax7xguadhih6xjl6n"; //Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
 
-    public static void createBucket() {
+    public static void createBucket(String bucketName) {
         System.out.println("Creating bucket " + bucketName + "\n");
         s3.createBucket(bucketName);
     }
 
     // upload file to bucket
-    public static String uploadFile(File file) {
+    public static String uploadFile(String bucketName, File file) {
         System.out.println("Uploading a new file to bucket");
         String key = file.getName(); //.replace('\\', '-').replace('/', '-').replace(':', '-');
         PutObjectRequest req = new PutObjectRequest(bucketName, key, file);
@@ -30,18 +29,18 @@ public class S3 {
     }
 
     //download file from bucket
-    public static S3Object downloadFile(String key) {
+    public static S3Object downloadFile(String bucketName, String key) {
         System.out.println("Downloading an object");
         return s3.getObject(new GetObjectRequest(bucketName, key));
     }
 
     // get file URL
-    public static String getFileURL(String key){
+    public static String getFileURL(String bucketName, String key){
         return s3.getUrl(bucketName, key).toString();
     }
 
     // remove file from bucket
-    public static void removeFile(String key){
+    public static void removeFile(String bucketName, String key){
 
         s3.deleteObject(bucketName, key);
     }

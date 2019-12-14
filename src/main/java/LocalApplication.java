@@ -23,6 +23,7 @@ public class LocalApplication {
         File outputFile = new File(args[1]);
         String nReviewPerWorker = args[2];
         Credentials.setCredentials();
+        String  bucketName =  Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
         boolean terminate = false;
         if (args.length > 3 ) {
             terminate = true;
@@ -32,13 +33,14 @@ public class LocalApplication {
         }
 
         //upload data file to S3 bucket and return its key
-        S3.createBucket();
-        String inputFileKey = S3.uploadFile(inputFile);
+        S3.createBucket(bucketName);
+        String inputFileKey = S3.uploadFile(bucketName, inputFile);
 
         //create sqs and send to the manager the url of s3 where data stored
         SQS localAppQ = new SQS();
         String localAppQUrl = localAppQ.createUserQ(userAppID);
-        localAppQ.sendMessage("M", "new task\n" + nReviewPerWorker + "\n" + inputFileKey + "\n" + userAppID + "\n" + localAppQUrl);
+        localAppQ.sendMessage("M", "new task\n" + nReviewPerWorker + "\n" + inputFileKey + "\n" + userAppID + "\n"
+                 + localAppQUrl+ "\n" + bucketName);
         if (terminate) {
             localAppQ.sendMessage("M", "new task\nterminate\n" + userAppID);
         }
@@ -62,7 +64,7 @@ public class LocalApplication {
                 }
             }
         }
-        S3Object gatheredOutput = S3.downloadFile("gathered output" + userAppID + ".json");
+        S3Object gatheredOutput = S3.downloadFile(bucketName, "gathered output" + userAppID + ".json");
         //TODO: now the part that creates the HTML
     }
 

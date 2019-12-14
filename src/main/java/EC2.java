@@ -37,18 +37,25 @@ public class EC2 {
         try {
             String imageId = "ami-00eb20669e0990cb4";
             String userData = "";
-            String firstLine = "#!/bin/bash\r\n";
+            String envScript = "#!/bin/bash\r\n" +
+//                    "sudo yum update -y\r\n" +
+                    "curl -O https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz\r\n" +
+                    "tar zxvf openjdk-11.0.1_linux-x64_bin.tar.gz\r\n" +
+                    "sudo mv jdk-11.0.1 /usr/local/\r\n" +
+                    "export JAVA_HOME=/usr/local/jdk-11.0.1\r\n" +
+                    "export PATH=$JAVA_HOME/bin:$PATH\r\n" +
+                    "sudo yum install aws-cli -y\r\n";
+
             if(key.equals("manager")){
                 System.out.println("starting Manager EC2");
+                String managerJar= "curl -O https://jarbucketholderofec2.s3.amazonaws.com/manager.jar\r\n";
 //                 //Image with java, maven, the jar file of the manager
-                userData = firstLine + "java -jar /home/ec2-user/manager.jar\r\n";
+                userData = envScript + managerJar + "java -jar /manager.jar Manager\r\n";
             }
             else if(key.equals("worker")){
                 System.out.println("starting worker EC2");
-//                imageId = "ami-0fa2497f50bf0ce72"; //Image with java, maven, the updated jar file of the worker
-                imageId = "ami-00eb20669e0990cb4";
-                userData = firstLine + "java -jar  /home/nadav/Desktop/AWS/target/dspAss1-1.0-SNAPSHOT-jar-with-dependencies.jar\r\n";
-//                firstLine + "java -cp .:yourjar.jar:stanford-corenlp-3.3.0.jar:stanford-corenlp-3.3.0-models.jar:ejml-0.23.jar:jollyday-0.4.7.jar Worker";
+                String workerJar= "curl -O https://jarbucketholderofec2.s3.amazonaws.com/worker.jar\r\n";
+                userData = envScript + workerJar + "java -jar /worker.jar Worker\r\n";
             }
 
             RunInstancesRequest request = new RunInstancesRequest(imageId, 1, 1);

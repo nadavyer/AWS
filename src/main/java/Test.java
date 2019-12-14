@@ -16,15 +16,15 @@ public class Test {
 
 
     private static void bucketTest(){
-        S3.createBucket();
+//        S3.createBucket();
         File file = new File("/home/nadav/Desktop/JSONS/0689835604.json");
         File file2 = new File("/home/nadav/Desktop/JSONS/B000EVOSE4.json");
-        String key = S3.uploadFile(file);
-        String key2 = S3.uploadFile(file2);
-        System.out.println(S3.getFileURL(key));
-        System.out.println(S3.getFileURL(key2));
-        S3Object s3obj = S3.downloadFile(key);
-        S3.removeFile(key);
+//        String key = S3.uploadFile(file);
+//        String key2 = S3.uploadFile(file2);
+//        System.out.println(S3.getFileURL(key));
+//        System.out.println(S3.getFileURL(key2));
+//        S3Object s3obj = S3.downloadFile(key);
+//        S3.removeFile(key);
     }
 
     private static void sqsTest() {

@@ -30,9 +30,9 @@ public class LocalApplication {
         if (args.length > 3 ) {
             terminate = true;
         }
-//        if (!managerIsUp()) {
-//            EC2.runMachines("manager", "manager"); //todo:change back!!!!
-//        }
+        if (!managerIsUp()) {
+            EC2.runMachines("manager", "manager");
+        }
 
         //upload data file to S3 bucket and return its key
         S3.createBucket(bucketName);

@@ -4,21 +4,21 @@ import com.amazonaws.util.IOUtils;
 import com.google.gson.Gson;
 
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.util.*;
 
 
 public class Manager {
     public static void main(String[] args) {
         System.out.println("Manager is RUNNING");
         SQS sqs = new SQS();
+        Gson gson = new Gson();
         int workerCount = 0, localAppCount = 0, msgCount;
         boolean terminate = false;
         boolean lastUser = false;
         String userIdToTerminate = "";
 
-        List<LocalAppsHandler> LocalAppsHandlers = new LinkedList<>();
+        HashMap<String, LocalAppHandler> summary = new HashMap<>();
 
         try {
             while (true) {
@@ -34,15 +34,14 @@ public class Manager {
                 String taskType = msgBody.substring(0, msgBody.indexOf('\n'));
 
                 if (taskType.equals("new task")) { //first task from user
+                    System.out.println("manager got msg from user");
                     msgBody = msg.getBody().substring(msgBody.indexOf('\n') + 1); //without "new task"
 
                     if (msgBody.split("\n")[0].equals("terminate")) { //terminate
                         terminate = true;
                         userIdToTerminate = msgBody.split("\n")[1];
-                        if (LocalAppsHandlers.size() > 0 &&
-                                LocalAppsHandlers.get(LocalAppsHandlers.size() - 1).getId().equals(userIdToTerminate)) {
+                        if (summary.size() == 1) {
                             lastUser = true;
-
                         }
                         // DO NOT ACCEPT MORE INPUT FILES
 
@@ -68,39 +67,48 @@ public class Manager {
                         S3Object inputFile = S3.downloadFile(bucketName, inputFileKey); //download from bucket
                         System.out.println("finished downloading");
                         String inputData = IOUtils.toString(inputFile.getObjectContent());
-                        Gson gson = new Gson();
                         TitleReviews[] titleRev = gson.fromJson(inputData, TitleReviews[].class);
                         int reviewsCount = getReviewsCount(titleRev);
                         System.out.println("the number of review is: " + reviewsCount);
                         int neededWorkersCount = Math.max(1, (reviewsCount / n) - workerCount);
                         System.out.println("the needed worker num is: " + neededWorkersCount);
+                        summary.put(userID, new LocalAppHandler(reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                         while (neededWorkersCount != 0) {
                             EC2.runMachines("worker", Integer.toString(workerCount));
                             neededWorkersCount--;
                             workerCount++;
                         }
-                        System.out.println("manager is filling jobs q of user");
-                        fillUpJobsQ(titleRev, sqs, localAppCount);
-                        System.out.println("manager finished filling up user q ");
 
-                        LocalAppsHandler localApp = new LocalAppsHandler(userID, msgCount, "", userQUrl);
-                        LocalAppsHandlers.add(localApp);
-                        localAppCount++;
+                        System.out.println("manager is filling jobs q of user");
+                        fillUpJobsQ(titleRev, sqs, userID);
+                        System.out.println("manager finished filling up user q ");
                     }
 
+                } else if (taskType.equals("done review")) {
+                    int counter = 0;
+                    System.out.println("manager got msg from worker" + counter++);
+                    String[] parts = msgBody.split("\n");
+                    String userId = parts[1];
+                    String reviewFromWorker = parts[2];
+                    if (summary.get(userId) != null) {
+                        if (summary.get(userId).getLocalAppMsgCount() == 0) { //if did all the user's msgs
+                            String fileName = "summary" + userId + ".json";
+                            File summaryFile = new File(fileName);
+                            Utills.writeToFile(summaryFile, summary.get(userId).getOutputMsgs());
+                            String summaryFileKey = S3.uploadFile(summary.get(userId).getBucketName(), summaryFile);
+                            sqs.sendMessage(userId, "finished task\n" + summaryFileKey);
+                            summary.remove(userId);
+                        } else {
+                            summary.get(userId).setLocalAppMsgCount(summary.get(userId).getLocalAppMsgCount() - 1); //-1 to msgCount of user
+                            summary.get(userId).addToOutput(gson.fromJson(reviewFromWorker, ReviewFromWorker.class));//add to summary
+                        }
                 }
-                else if (taskType.equals("done review")) {
-                    System.out.println("THE MSG FROM WORKER IS!:"); //todo: need to process the msg from the worker
-                    System.out.println(msgBody);
                 }
-
-
-
                 if (terminate && lastUser) {
                     // iterate over all userapps, wait untill all active messages = 0
                     boolean over = true;
-                    for (LocalAppsHandler localApp : LocalAppsHandlers) {
-                        if (localApp.getActiveMsgs() > 0) {
+                    for (Map.Entry<String, LocalAppHandler> entry : summary.entrySet()) {
+                        if (entry.getValue().getLocalAppMsgCount() > 0) {
                             over = false;
                             break;
                         }
@@ -132,12 +140,12 @@ public class Manager {
         }
     }
 
-    private static void fillUpJobsQ(TitleReviews[] titleRev, SQS sqs, int localAppCount) {
+    private static void fillUpJobsQ(TitleReviews[] titleRev, SQS sqs, String localAppId) {
         Gson gson = new Gson();
         for (TitleReviews titleReview : titleRev) {
             for (int j = 0; j < titleReview.getReviews().length; j++) {
                 Review review = titleReview.getReviews()[j];
-                sqs.sendMessage("W",  "new review task\n" + localAppCount+ "\n" + gson.toJson(review));
+                sqs.sendMessage("W", "new review task\n" + localAppId + "\n" + gson.toJson(review));
             }
         }
     }

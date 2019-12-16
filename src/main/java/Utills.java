@@ -1,5 +1,11 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
 
@@ -31,5 +37,77 @@ public class Utills {
         } catch (IOException e) {
             throw new IOException("stringToText fail");
         }
+    }
+
+    public static void writeToFile(File toUserSummary, ArrayList<ReviewFromWorker> outputMsgs) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.writeValue(toUserSummary, outputMsgs);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void stringToHTML (String fileName, String data){
+        String head = "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "<meta charset=\"utf-8\">\n" +
+                "<title>Summary</title>\n" +
+                "</head>\n" +
+                "<body>\n";
+        String tail = "</body>\n" +
+                "</html>";
+        try{
+            PrintWriter pw = new PrintWriter(fileName + ".html");
+            pw.println(head);
+
+            Gson gson = new Gson();
+
+            ReviewFromWorker[] workersReviews = gson.fromJson(data, ReviewFromWorker[].class);
+
+            for (ReviewFromWorker review : workersReviews) {
+                String line = paintLineBySentiment(review);
+                pw.print(line);
+            }
+            pw.println(tail);
+
+            pw.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String paintLineBySentiment(ReviewFromWorker review) {
+        String line = "";
+        int sentiment = review.getSentimentAnalysis();
+        switch (sentiment) {
+            case 0:
+                line = line + "<l1 style=\"color:darkred;\">";
+                break;
+            case 1:
+                line = line + "<l1 style=\"color:red;\">";
+                break;
+            case 2:
+                line = line + "<l1 style=\"color:black;\">";
+                break;
+            case 3:
+                line = line + "<l1 style=\"color:lightgreen;\">";
+                break;
+            case 4:
+                line = line + "<l1 style=\"color:darkgreen;\">";
+                break;
+        }
+
+        String sarcastic = "";
+        if (review.getSarcastic()) {
+            sarcastic = "Yes";
+        }
+        else {
+            sarcastic = "No";
+        }
+
+        line = line + review.getReview().getText() + review.getEntities() + " Is sarcastic?: " + sarcastic + "<br><br>";
+
+        return line;
     }
 }

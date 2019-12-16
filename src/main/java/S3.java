@@ -21,7 +21,7 @@ public class S3 {
     // upload file to bucket
     public static String uploadFile(String bucketName, File file) {
         System.out.println("Uploading a new file to bucket");
-        String key = file.getName(); //.replace('\\', '-').replace('/', '-').replace(':', '-');
+        String key = file.getName();
         PutObjectRequest req = new PutObjectRequest(bucketName, key, file);
         req.setCannedAcl(CannedAccessControlList.PublicRead);
         s3.putObject(req);

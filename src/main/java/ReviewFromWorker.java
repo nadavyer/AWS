@@ -26,4 +26,7 @@ public class ReviewFromWorker {
         return isSarcastic;
     }
 
+    public Review getReview() {
+        return review;
+    }
 }

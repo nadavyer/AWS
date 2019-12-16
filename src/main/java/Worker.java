@@ -19,14 +19,13 @@ public class Worker {
                 continue;
 
             }
-
+            System.out.println("worker got review");
             String body = Objects.requireNonNull(msg).getBody();
             String[] parts = body.split("\n");
             String msgType = parts[0];
             String localAppId = parts[1];
             String reviewStringFromM = parts[2];
             if (msgType.equals("new review task")) {
-                System.out.println("worker start review task");
                 sqs.setMsgVisibility("W", msg.getReceiptHandle(), 180);
                 Review review = gson.fromJson(reviewStringFromM, Review.class);
                 String entitiesInReview = entityRecognition.stringifyEntities(review.getText());
@@ -34,12 +33,10 @@ public class Worker {
                 Boolean isSarcasticReview = sentimentAnalyser.isSarcastic(review.getRating(), sentAnalysis);
                 ReviewFromWorker reviewFromWorker = new ReviewFromWorker(review, sentAnalysis, entitiesInReview,
                         isSarcasticReview);
-                System.out.println("the review is: " + review.toString());
-                System.out.println("Entities: " + entitiesInReview + "\n" + "Sentiment anal: " + sentAnalysis.toString()
-                + "\n" + "sarcastic: " + isSarcasticReview.toString() + "\n");
                 String revFromWorkerJson = gson.toJson(reviewFromWorker);
                 sqs.sendMessage("M", "done review\n" + localAppId + "\n" + revFromWorkerJson);
                 sqs.removeMessage("W", msg);
+                System.out.println("worker done review");
             }
         }
     }

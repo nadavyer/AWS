@@ -2,8 +2,10 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.util.IOUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -20,7 +22,7 @@ public class LocalApplication {
         */
         String userAppID = UUID.randomUUID().toString();
         File inputFile = new File(args[0]);
-        File outputFile = new File(args[1]);
+        String outputFileName = args[1];
         String nReviewPerWorker = args[2];
         Credentials.setCredentials();
         String  bucketName =  Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
@@ -28,9 +30,9 @@ public class LocalApplication {
         if (args.length > 3 ) {
             terminate = true;
         }
-        if (!managerIsUp()) {
-            EC2.runMachines("manager", "manager");
-        }
+//        if (!managerIsUp()) {
+//            EC2.runMachines("manager", "manager"); //todo:change back!!!!
+//        }
 
         //upload data file to S3 bucket and return its key
         S3.createBucket(bucketName);
@@ -50,7 +52,7 @@ public class LocalApplication {
             msg = localAppQ.getMessage(localAppQUrl);
             if (msg == null) {
                 try {
-                    sleep(500);
+                    sleep(50);
                     System.out.println("localApp is sleeping!");
                     continue;
                 } catch (InterruptedException e) {
@@ -58,14 +60,26 @@ public class LocalApplication {
                 }
             }
             String[] parsedMsg = Objects.requireNonNull(msg).getBody().split("\n");
-            if (parsedMsg[0].equals("finised task")) {
-                if (parsedMsg[1].equals(userAppID)) {
-                    break;
-                }
+            if (parsedMsg[0].equals("finished task")) {
+                break;
+            }
+            String key = parsedMsg[1];
+            System.out.println("downloading summary from manager");
+            S3Object summaryFile = S3.downloadFile(bucketName, key);
+            System.out.println("downloaded summary from manager");
+            try {
+                Utills.stringToHTML(outputFileName, IOUtils.toString(summaryFile.getObjectContent()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            localAppQ.removeMessage(localAppQUrl, msg);
+            try {
+                localAppQ.deleteQ(localAppQUrl);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        S3Object gatheredOutput = S3.downloadFile(bucketName, "gathered output" + userAppID + ".json");
-        //TODO: now the part that creates the HTML
+        System.out.println("Done!");
     }
 
     private static boolean managerIsUp() {

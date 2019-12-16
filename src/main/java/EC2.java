@@ -71,7 +71,7 @@ public class EC2 {
                     .setKeyName("Admin");
             request.setInstanceType(InstanceType.T2Small.toString());
 
-            request.setUserData(Base64.encodeAsString(userData.getBytes()));//Base64.getEncoder().encodeToString(userData.getBytes()));
+            request.setUserData(Base64.encodeAsString(userData.getBytes()));
 
             Tag t = new Tag(key, value);
             List<Tag> tags = new LinkedList<Tag>();
@@ -85,15 +85,7 @@ public class EC2 {
 
             request.setTagSpecifications(specifications);
             ec2.runInstances(request);
-//            System.out.println("**********");
-//            System.out.println("runMachines - "+instances);
-
-//            activeInstances = getActiveInstances(); //not working that way makes it double somehow
             activeInstances = ec2.describeInstances().getReservations().get(0).getInstances();
-
-//            System.out.println("runningInstances length = "+ activeInstances.size());
-//            System.out.println("runningInstances - "+activeInstances);
-//            System.out.println("**********");
 
         } catch (AmazonServiceException ase) {
             System.out.println("Caught Exception: " + ase.getMessage());

@@ -89,39 +89,34 @@
 
         <dependency>
             <groupId>com.sample</groupId>
-            <artifactId>sample1</artifactId>
+            <artifactId>ejml-0.23</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>/home/nadav/Desktop/AWS/src/main/resources/ejml-0.23.jar</systemPath>
+            <systemPath>/home/nadav/Documents/ejml-0.23.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>com.sample</groupId>
-            <artifactId>sample2</artifactId>
+            <artifactId>jolly-0.4.7</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>/home/nadav/Desktop/AWS/src/main/resources/jollyday-0.4.7.jar</systemPath>
+            <systemPath>/home/nadav/Documents/jollyday-0.4.7.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.sample</groupId>
-            <artifactId>sample3</artifactId>
+            <artifactId>stanford-corenlp-3.3.0</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>/home/nadav/Desktop/AWS/src/main/resources/stanford-corenlp-3.3.0.jar</systemPath>
+            <systemPath>/home/nadav/Documents/stanford-corenlp-3.3.0.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>com.sample</groupId>
-            <artifactId>sample4</artifactId>
+            <artifactId>stanford-corenlp-3.3.0-models</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>/home/nadav/Desktop/AWS/src/main/resources/stanford-corenlp-3.3.0-models.jar</systemPath>
+            <systemPath>/home/nadav/Documents/stanford-corenlp-3.3.0-models.jar</systemPath>
         </dependency>
-
-
-
-
-
     </dependencies>
 
 </project>

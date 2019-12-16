@@ -38,7 +38,7 @@ public class EC2 {
             String imageId = "ami-00eb20669e0990cb4";
             String userData = "";
             String envScript = "#!/bin/bash\r\n" +
-//                    "sudo yum update -y\r\n" +
+                    "sudo yum update -y\r\n" +
                     "curl -O https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz\r\n" +
                     "tar zxvf openjdk-11.0.1_linux-x64_bin.tar.gz\r\n" +
                     "sudo mv jdk-11.0.1 /usr/local/\r\n" +
@@ -54,8 +54,13 @@ public class EC2 {
             }
             else if(key.equals("worker")){
                 System.out.println("starting worker EC2");
-                String workerJar= "curl -O https://jarbucketholderofec2.s3.amazonaws.com/worker.jar\r\n";
-                userData = envScript + workerJar + "java -jar /worker.jar Worker\r\n";
+                String workerJar= "curl -O https://jarbucketholderofec2.s3.amazonaws.com/worker.jar\r\n" +
+                        "curl -O https://jarbucketholderofec2.s3.amazonaws.com/ejml-0.23.jar\r\n" +
+                        "curl -O https://jarbucketholderofec2.s3.amazonaws.com/jollyday-0.4.7.jar\r\n" +
+                        "curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0.jar\r\n" +
+                        "curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0-models.jar\r\n";
+                userData = envScript + workerJar + "java -cp .:worker.jar:stanford-corenlp-3.3.0.jar:" +
+                        "stanford-corenlp-3.3.0-models.jar:ejml-0.23.jar:jollyday-0.4.7.jar -Xmx1g Worker\r\n";
             }
 
             RunInstancesRequest request = new RunInstancesRequest(imageId, 1, 1);
@@ -64,7 +69,7 @@ public class EC2 {
                     .withIamInstanceProfile(new IamInstanceProfileSpecification().withName("NE"))
                     .withSecurityGroupIds("sg-0aca71c6b04078880")
                     .setKeyName("Admin");
-            request.setInstanceType(InstanceType.T2Micro.toString());
+            request.setInstanceType(InstanceType.T2Small.toString());
 
             request.setUserData(Base64.encodeAsString(userData.getBytes()));//Base64.getEncoder().encodeToString(userData.getBytes()));
 

@@ -16,6 +16,7 @@ public class Worker {
             if (msg == null) {
                 System.out.println("worker is sleeping");
                 Utills.sleepMs(20);
+                continue;
 
             }
 

@@ -82,7 +82,7 @@ public class SQS {
         }
     }
 
-    public void deleteQ(String q) {  //TODO: need to use DeleteQueueRequest??
+    public void deleteQ(String q) {
         String qURL = getQURL(q);
         sqs.deleteQueue(qURL);
     }
@@ -98,4 +98,16 @@ public class SQS {
         }
     }
 
+    public void removeMsgUserQ(String qUrl, Message msg) {
+        try {
+            String messageRecieptHandle = msg.getReceiptHandle();
+            DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(qUrl, messageRecieptHandle);
+            sqs.deleteMessage(deleteMessageRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+        public void deleteUserQ(String qUrl) {
+            sqs.deleteQueue(qUrl);
+        }
 }

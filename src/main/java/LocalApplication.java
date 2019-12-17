@@ -30,9 +30,9 @@ public class LocalApplication {
         if (args.length > 3 ) {
             terminate = true;
         }
-        if (!managerIsUp()) {
-            EC2.runMachines("manager", "manager");
-        }
+//        if (!managerIsUp()) {
+//            EC2.runMachines("manager", "manager");
+//        }
 
         //upload data file to S3 bucket and return its key
         S3.createBucket(bucketName);
@@ -67,7 +67,9 @@ public class LocalApplication {
             System.out.println("downloading summary from manager");
             S3Object summaryFile = S3.downloadFile(bucketName, key);
             System.out.println("downloaded summary from manager");
+            localAppQ.removeMessage(userAppID, msg);
             try {
+                System.out.println("user creating HTML file");
                 Utills.stringToHTML(outputFileName, IOUtils.toString(summaryFile.getObjectContent()));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -75,6 +77,7 @@ public class LocalApplication {
             localAppQ.removeMessage(localAppQUrl, msg);
             try {
                 localAppQ.deleteQ(localAppQUrl);
+                localAppQ.deleteUserQ(localAppQUrl);
             } catch (Exception e) {
                 e.printStackTrace();
             }

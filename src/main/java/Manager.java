@@ -11,11 +11,12 @@ import java.util.*;
 public class Manager {
     public static void main(String[] args) {
         System.out.println("Manager is RUNNING");
+        int counter = 0;
         SQS sqs = new SQS();
         Gson gson = new Gson();
         int workerCount = 0, localAppCount = 0, msgCount;
         boolean terminate = false;
-        boolean lastUser = false;
+        boolean doneUsers = false;
         String userIdToTerminate = "";
 
         HashMap<String, LocalAppHandler> summary = new HashMap<>();
@@ -40,15 +41,15 @@ public class Manager {
                     if (msgBody.split("\n")[0].equals("terminate")) { //terminate
                         terminate = true;
                         userIdToTerminate = msgBody.split("\n")[1];
-                        if (summary.size() == 1) {
-                            lastUser = true;
+                        if (summary.size() == 0) {
+                            doneUsers = true;
                         }
                         // DO NOT ACCEPT MORE INPUT FILES
 
                         // Wait for workers to finish ~ WQ=empty -> close all workers
                         // generate response message -> export summary to userApplication
                     } else { //body = n\n<key of input file>\n<user ID>
-                        if (terminate && lastUser) continue;
+                        if (terminate && doneUsers) continue;
 
                         msgCount = 0;
 
@@ -61,7 +62,7 @@ public class Manager {
                         String bucketName = parts[4];
 
                         if (userID.equals(userIdToTerminate)) {
-                            lastUser = true;
+                            doneUsers = true;
                         }
 
                         S3Object inputFile = S3.downloadFile(bucketName, inputFileKey); //download from bucket
@@ -85,26 +86,27 @@ public class Manager {
                     }
 
                 } else if (taskType.equals("done review")) {
-                    int counter = 0;
+
                     System.out.println("manager got msg from worker" + counter++);
                     String[] parts = msgBody.split("\n");
                     String userId = parts[1];
                     String reviewFromWorker = parts[2];
-                    if (summary.get(userId) != null) {
-                        if (summary.get(userId).getLocalAppMsgCount() == 0) { //if did all the user's msgs
-                            String fileName = "summary" + userId + ".json";
-                            File summaryFile = new File(fileName);
-                            Utills.writeToFile(summaryFile, summary.get(userId).getOutputMsgs());
-                            String summaryFileKey = S3.uploadFile(summary.get(userId).getBucketName(), summaryFile);
-                            sqs.sendMessage(userId, "finished task\n" + summaryFileKey);
-                            summary.remove(userId);
-                        } else {
-                            summary.get(userId).setLocalAppMsgCount(summary.get(userId).getLocalAppMsgCount() - 1); //-1 to msgCount of user
-                            summary.get(userId).addToOutput(gson.fromJson(reviewFromWorker, ReviewFromWorker.class));//add to summary
-                        }
+                    summary.get(userId).addToOutput(gson.fromJson(reviewFromWorker, ReviewFromWorker.class));//add to summary
+                    summary.get(userId).setLocalAppMsgCount(summary.get(userId).getLocalAppMsgCount() - 1); //-1 to msgCount of user
+                    if (summary.get(userId).getLocalAppMsgCount() == 0) { //if did all the user's msgs
+                        System.out.println("manager finished all reviews of user and sending to user");
+                        String fileName = "summary" + userId + ".json";
+                        File summaryFile = new File(fileName);
+                        System.out.println("remained msgs from user: " + summary.get(userId).getLocalAppMsgCount());
+                        System.out.println("the summary is " + summary.get(userId).getOutputMsgs());
+                        Utills.writeToFile(summaryFile, summary.get(userId).getOutputMsgs());
+                        String summaryFileKey = S3.uploadFile(summary.get(userId).getBucketName(), summaryFile);
+                        sqs.sendMessage(userId, "finished task\n" + summaryFileKey);
+                        summary.remove(userId);
+                    }
                 }
-                }
-                if (terminate && lastUser) {
+
+                if (terminate && doneUsers) {
                     // iterate over all userapps, wait untill all active messages = 0
                     boolean over = true;
                     for (Map.Entry<String, LocalAppHandler> entry : summary.entrySet()) {

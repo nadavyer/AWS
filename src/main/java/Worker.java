@@ -36,7 +36,7 @@ public class Worker {
                 String revFromWorkerJson = gson.toJson(reviewFromWorker);
                 sqs.sendMessage("M", "done review\n" + localAppId + "\n" + revFromWorkerJson);
                 sqs.removeMessage("W", msg);
-                System.out.println("worker done review");
+                System.out.println("worker done review: " + revFromWorkerJson);
             }
         }
     }

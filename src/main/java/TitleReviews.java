@@ -5,9 +5,7 @@ public class TitleReviews{
     private String title;
     private Review[] reviews;
 
-    public String getTitle() {
-        return title;
-    }
+
 
     public Review[] getReviews() {
         return reviews;

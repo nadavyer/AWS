@@ -29,16 +29,6 @@ public class Utills {
         }
     }
 
-    public static void stringToText(String filename, String outputText) throws IOException {
-        try {
-            PrintWriter pw = new PrintWriter(filename + ".txt");
-            pw.println(outputText);
-            pw.close();
-        } catch (IOException e) {
-            throw new IOException("stringToText fail");
-        }
-    }
-
     public static void writeToFile(File toUserSummary, ArrayList<ReviewFromWorker> outputMsgs) {
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -65,11 +55,9 @@ public class Utills {
             Gson gson = new Gson();
 
             ReviewFromWorker[] workersReviews = gson.fromJson(data, ReviewFromWorker[].class);
-            int i = 0;
             for (ReviewFromWorker finishedReview : workersReviews) {
                 String line = paintLineBySentiment(finishedReview);
                 pw.print(line);
-                i++;
             }
             pw.println(tail);
 
@@ -99,37 +87,17 @@ public class Utills {
                 line = line + "<l1 style=\"color:darkgreen;\">";
                 break;
         }
-        Boolean f = finishedReview.getSarcastic();
-        String sarcastic = "";
+        String sarcastic;
         if (finishedReview.getSarcastic()) {
             sarcastic = "Yes";
         } else {
             sarcastic = "No";
         }
 
-        line = line + finishedReview.getReview().getText() + finishedReview.getEntities() + " Is sarcastic?: " + sarcastic + "<br><br>";
+        line = line + finishedReview.getReview() + finishedReview.getEntities() + " Is sarcastic?: " + sarcastic + "<br><br>";
 
         return line;
     }
 
-    public static int getKindLen(String[] args) {
-
-        if (args[args.length - 1].equals("terminate")) {
-            return (args.length - 2) / 2;
-        } else {
-            return (args.length - 1) / 2;
-        }
-    }
-
-    public static String[] fillFilesNames(String flag, int len, String[] args) {
-        String[] output = new String[len];
-        if (flag.equals("input")) {
-            System.arraycopy(args, 0, output, 0, len);
-        }
-        else {
-            if (len * 2 - len >= 0) System.arraycopy(args, len, output, len, len * 2 - len);
-        }
-        return output;
-    }
 }
 

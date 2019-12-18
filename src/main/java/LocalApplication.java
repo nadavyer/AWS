@@ -10,21 +10,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static java.lang.Thread.sleep;
 
 public class LocalApplication {
     public static void main(String[] args) {
         /*
          input from terminal can be as follows:
-        * java -jar yourjar.jar inputFileName1… inputFileNameN outputFileName1… outputFileNameN n
+        * java -jar yourjar.jar inputFileName outputFileName n
         * or:
-        * java  -jar yourjar.jar inputFileName1… inputFileNameN outputFileName1… outputFileNameN n terminate
+        * java  -jar yourjar.jar inputFileName outputFileName n terminate
         */
         String userAppID = UUID.randomUUID().toString();
-        int len = Utills.getKindLen(args);
-//        String[] inputFiles = Utills.fillFilesNames("input", len, args);
-//        String[] outFiles = Utills.fillFilesNames("outout", len, args);
-
         File inputFile = new File(args[0]);
         String outputFileName = args[1];
         String nReviewPerWorker = args[2];
@@ -34,8 +29,8 @@ public class LocalApplication {
         if (args.length > 3) {
             terminate = true;
         }
-//        if (!managerIsUp()) {
-//            EC2.runMachines("manager", "manager");//todo:change back!!!
+//        if (!managerIsUp()) {//todo:change back
+//            EC2.runMachines("manager", "manager");
 //        }
 
         //upload data file to S3 bucket and return its key
@@ -56,24 +51,22 @@ public class LocalApplication {
         while (true) {
             msg = localAppQ.getMessage(localAppQUrl);
             if (msg == null) {
-                try {
-                    sleep(100);
-                    System.out.println("localApp is sleeping!");
-                    continue;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Utills.sleepMs(100);
+                System.out.println("localApp is sleeping!");
+                continue;
             }
             parsedMsg = Objects.requireNonNull(msg).getBody().split("\n");
             if (parsedMsg[0].equals("finished task")) {
                 break;
+            } else if (parsedMsg[0].equals("close request")) { //terminate due to other user termination
+                System.out.println("system has been terminated. Can't handle request");
+                localAppQ.deleteQ(localAppQUrl);
+                return;
             }
         }
         String key = parsedMsg[1];
-        System.out.println("downloading summary from manager");
         S3Object summaryFile = S3.downloadFile(bucketName, key);
         System.out.println("downloaded summary from manager");
-        localAppQ.removeMessage(userAppID, msg);
         try {
             System.out.println("user creating HTML file");
             Utills.stringToHTML(outputFileName, IOUtils.toString(summaryFile.getObjectContent()));

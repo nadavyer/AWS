@@ -18,17 +18,6 @@ public class Review {
         this.date = date;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public String getTitle() {
-        return title;
-    }
 
     public String getText() {
         return text;
@@ -38,13 +27,6 @@ public class Review {
         return rating;
     }
 
-    public String getAuthor() {
-        return author;
-    }
-
-    public String getDate() {
-        return date;
-    }
 
 
     @Override

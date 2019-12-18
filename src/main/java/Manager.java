@@ -4,13 +4,17 @@ import com.amazonaws.util.IOUtils;
 import com.google.gson.Gson;
 
 
-import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class Manager {
+
+    public static  AtomicInteger counter = new AtomicInteger(0);
+    public static ConcurrentHashMap<String, LocalAppHandler> summary = new ConcurrentHashMap<>();
     public static void main(String[] args) {
         System.out.println("Manager is RUNNING");
         ExecutorService pool = Executors.newFixedThreadPool(8);
@@ -22,7 +26,7 @@ public class Manager {
         boolean doneUsers = false;
         String userIdToTerminate = "";
 
-        HashMap<String, LocalAppHandler> summary = new HashMap<>();
+
 
         try {
             while (true) {
@@ -72,9 +76,9 @@ public class Manager {
                         System.out.println("finished downloading");
                         String inputData = IOUtils.toString(inputFile.getObjectContent());
                         TitleReviews[] titleRev = gson.fromJson(inputData, TitleReviews[].class);
-                        int reviewsCount = getReviewsCount(titleRev);
+                        AtomicInteger reviewsCount = getReviewsCount(titleRev);
                         System.out.println("the number of review is: " + reviewsCount);
-                        int neededWorkersCount = Math.max(1, (reviewsCount / n) - workerCount);
+                        int neededWorkersCount = Math.max(1, (reviewsCount.getAndSet(reviewsCount.intValue()) / n) - workerCount);
                         System.out.println("the needed worker num is: " + neededWorkersCount);
                         summary.put(userID, new LocalAppHandler(reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                         while (neededWorkersCount != 0) {
@@ -84,30 +88,16 @@ public class Manager {
                         }
 
                         System.out.println("manager is filling jobs q of user");
-//                        fillUpJobsQ(titleRev, sqs, userID);
-                        pool.execute(new FillWorkerQ(titleRev, sqs, userID));
+                        pool.execute(new TaskFillWorkerQ(titleRev, sqs, userID));
                         System.out.println("manager finished filling up user q ");
                     }
 
                 } else if (taskType.equals("done review")) {
 
-                    System.out.println("manager got msg from worker" + counter++);
-                    String[] parts = msgBody.split("\n");
-                    String userId = parts[1];
-                    String reviewFromWorker = parts[2];
-                    summary.get(userId).addToOutput(gson.fromJson(reviewFromWorker, ReviewFromWorker.class));//add to summary
-                    summary.get(userId).setLocalAppMsgCount(summary.get(userId).getLocalAppMsgCount() - 1); //-1 to msgCount of user
-                    if (summary.get(userId).getLocalAppMsgCount() == 0) { //if did all the user's msgs
-                        System.out.println("manager finished all reviews of user and sending to user");
-                        String fileName = "summary" + userId + ".json";
-                        File summaryFile = new File(fileName);
-                        System.out.println("remained msgs from user: " + summary.get(userId).getLocalAppMsgCount());
-                        System.out.println("the summary is " + summary.get(userId).getOutputMsgs());
-                        Utills.writeToFile(summaryFile, summary.get(userId).getOutputMsgs());
-                        String summaryFileKey = S3.uploadFile(summary.get(userId).getBucketName(), summaryFile);
-                        sqs.sendMessage(userId, "finished task\n" + summaryFileKey);
-                        summary.remove(userId);
-                    }
+                    System.out.println("manager got review from worker and giving thread to do");
+                    pool.execute(new TaskHandleWorkerOutput(msgBody, sqs));
+                    System.out.println("manager gave thread");
+
                 }
 //                if (msgBody.split("\n")[0].equals("terminate") && summary.size() == 0 ) {
 //                    doneUsers = true;
@@ -117,7 +107,7 @@ public class Manager {
                     // iterate over all userapps, wait untill all active messages = 0
                     boolean over = true;
                     for (Map.Entry<String, LocalAppHandler> entry : summary.entrySet()) {
-                        if (entry.getValue().getLocalAppMsgCount() > 0) {
+                        if (entry.getValue().getLocalAppMsgCount().intValue() > 0) {
                             over = false;
                             break;
                         }
@@ -137,7 +127,7 @@ public class Manager {
                     // his response message last.
 
                     // close manager, removing message is redundant as we closed the manager Q above.
-                    //queues.removeMessage("M", msg);
+                    sqs.removeMessage("M", msg);
                     EC2.closeManager();
                     return;
                 }
@@ -159,12 +149,12 @@ public class Manager {
         }
     }
 
-    private static int getReviewsCount(TitleReviews[] titleRev) {
+    private static AtomicInteger getReviewsCount(TitleReviews[] titleRev) {
 
         int revCount = 0;
         for (TitleReviews titleReviews : titleRev) {
             revCount += titleReviews.getReviews().length;
         }
-        return revCount;
+        return new AtomicInteger(revCount);
     }
 }

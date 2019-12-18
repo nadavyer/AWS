@@ -1,11 +1,11 @@
 import com.google.gson.Gson;
 
-public class FillWorkerQ implements Runnable {
+public class TaskFillWorkerQ implements Runnable {
     SQS sqs;
     TitleReviews[] titleReviews;
     String localAppId;
 
-    public FillWorkerQ(TitleReviews[] titleRev, SQS sqs, String localAppId) {
+    public TaskFillWorkerQ(TitleReviews[] titleRev, SQS sqs, String localAppId) {
         this.sqs = sqs;
         this.titleReviews = titleRev;
         this.localAppId = localAppId;

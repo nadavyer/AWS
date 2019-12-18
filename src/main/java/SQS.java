@@ -98,16 +98,4 @@ public class SQS {
         }
     }
 
-    public void removeMsgUserQ(String qUrl, Message msg) {
-        try {
-            String messageRecieptHandle = msg.getReceiptHandle();
-            DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(qUrl, messageRecieptHandle);
-            sqs.deleteMessage(deleteMessageRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-        public void deleteUserQ(String qUrl) {
-            sqs.deleteQueue(qUrl);
-        }
 }

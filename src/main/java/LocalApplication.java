@@ -6,6 +6,7 @@ import com.amazonaws.util.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -21,17 +22,21 @@ public class LocalApplication {
         * java  -jar yourjar.jar inputFileName1… inputFileNameN outputFileName1… outputFileNameN n terminate
         */
         String userAppID = UUID.randomUUID().toString();
+        int len = Utills.getKindLen(args);
+//        String[] inputFiles = Utills.fillFilesNames("input", len, args);
+//        String[] outFiles = Utills.fillFilesNames("outout", len, args);
+
         File inputFile = new File(args[0]);
         String outputFileName = args[1];
         String nReviewPerWorker = args[2];
         Credentials.setCredentials();
-        String  bucketName =  Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
+        String bucketName = Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
         boolean terminate = false;
-        if (args.length > 3 ) {
+        if (args.length > 3) {
             terminate = true;
         }
 //        if (!managerIsUp()) {
-//            EC2.runMachines("manager", "manager");
+//            EC2.runMachines("manager", "manager");//todo:change back!!!
 //        }
 
         //upload data file to S3 bucket and return its key
@@ -42,12 +47,13 @@ public class LocalApplication {
         SQS localAppQ = new SQS();
         String localAppQUrl = localAppQ.createUserQ(userAppID);
         localAppQ.sendMessage("M", "new task\n" + nReviewPerWorker + "\n" + inputFileKey + "\n" + userAppID + "\n"
-                 + localAppQUrl+ "\n" + bucketName);
+                + localAppQUrl + "\n" + bucketName);
         if (terminate) {
             localAppQ.sendMessage("M", "new task\nterminate\n" + userAppID);
         }
 
         Message msg;
+        String[] parsedMsg;
         while (true) {
             msg = localAppQ.getMessage(localAppQUrl);
             if (msg == null) {
@@ -59,38 +65,37 @@ public class LocalApplication {
                     e.printStackTrace();
                 }
             }
-            String[] parsedMsg = Objects.requireNonNull(msg).getBody().split("\n");
+            parsedMsg = Objects.requireNonNull(msg).getBody().split("\n");
             if (parsedMsg[0].equals("finished task")) {
                 break;
             }
-            String key = parsedMsg[1];
-            System.out.println("downloading summary from manager");
-            S3Object summaryFile = S3.downloadFile(bucketName, key);
-            System.out.println("downloaded summary from manager");
-            localAppQ.removeMessage(userAppID, msg);
-            try {
-                System.out.println("user creating HTML file");
-                Utills.stringToHTML(outputFileName, IOUtils.toString(summaryFile.getObjectContent()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            localAppQ.removeMessage(localAppQUrl, msg);
-            try {
-                localAppQ.deleteQ(localAppQUrl);
-                localAppQ.deleteUserQ(localAppQUrl);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        }
+        String key = parsedMsg[1];
+        System.out.println("downloading summary from manager");
+        S3Object summaryFile = S3.downloadFile(bucketName, key);
+        System.out.println("downloaded summary from manager");
+        localAppQ.removeMessage(userAppID, msg);
+        try {
+            System.out.println("user creating HTML file");
+            Utills.stringToHTML(outputFileName, IOUtils.toString(summaryFile.getObjectContent()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        localAppQ.removeMessage(localAppQUrl, msg);
+        try {
+            localAppQ.deleteQ(localAppQUrl);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         System.out.println("Done!");
     }
 
     private static boolean managerIsUp() {
         List<Instance> activeInstances = EC2.getActiveInstances();
-        for (Instance i : activeInstances){
+        for (Instance i : activeInstances) {
             List<Tag> tags = i.getTags();
-            for (Tag t : tags){
-                if(t.getKey().equals("manager")){
+            for (Tag t : tags) {
+                if (t.getKey().equals("manager")) {
                     return true;
                 }
             }

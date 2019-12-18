@@ -6,11 +6,14 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Manager {
     public static void main(String[] args) {
         System.out.println("Manager is RUNNING");
+        ExecutorService pool = Executors.newFixedThreadPool(8);
         int counter = 0;
         SQS sqs = new SQS();
         Gson gson = new Gson();
@@ -31,6 +34,7 @@ public class Manager {
                     continue;
                 }
 
+
                 String msgBody = Objects.requireNonNull(msg).getBody();
                 String taskType = msgBody.substring(0, msgBody.indexOf('\n'));
 
@@ -41,15 +45,14 @@ public class Manager {
                     if (msgBody.split("\n")[0].equals("terminate")) { //terminate
                         terminate = true;
                         userIdToTerminate = msgBody.split("\n")[1];
-                        if (summary.size() == 0) {
-                            doneUsers = true;
-                        }
+
                         // DO NOT ACCEPT MORE INPUT FILES
 
                         // Wait for workers to finish ~ WQ=empty -> close all workers
                         // generate response message -> export summary to userApplication
                     } else { //body = n\n<key of input file>\n<user ID>
-                        if (terminate && doneUsers) continue;
+//                        if (terminate && doneUsers) continue;
+//                        if (terminate) continue;//todo: need or no dont know
 
                         msgCount = 0;
 
@@ -75,13 +78,14 @@ public class Manager {
                         System.out.println("the needed worker num is: " + neededWorkersCount);
                         summary.put(userID, new LocalAppHandler(reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                         while (neededWorkersCount != 0) {
-                            EC2.runMachines("worker", Integer.toString(workerCount));
+                            EC2.runMachines("worker", Integer.toString(workerCount));//todo:back to activate workers
                             neededWorkersCount--;
                             workerCount++;
                         }
 
                         System.out.println("manager is filling jobs q of user");
-                        fillUpJobsQ(titleRev, sqs, userID);
+//                        fillUpJobsQ(titleRev, sqs, userID);
+                        pool.execute(new FillWorkerQ(titleRev, sqs, userID));
                         System.out.println("manager finished filling up user q ");
                     }
 
@@ -105,6 +109,9 @@ public class Manager {
                         summary.remove(userId);
                     }
                 }
+//                if (msgBody.split("\n")[0].equals("terminate") && summary.size() == 0 ) {
+//                    doneUsers = true;
+//                }
 
                 if (terminate && doneUsers) {
                     // iterate over all userapps, wait untill all active messages = 0

@@ -12,21 +12,21 @@ import static java.lang.Thread.sleep;
 public class Utills {
 
     public static String uncapitalizeChars(String s) {
-        return s.replace('A','a').
-                replace('B','b').replace('C','c').replace('D','d').replace('E','e')
-                .replace('F','f').replace('G','g').replace('H','h').replace('I','i')
-                .replace('J','j').replace('K','k').replace('L','l').replace('M','m')
-                .replace('N','n').replace('O','o').replace('P','p').replace('Q','q')
-                .replace('R','r').replace('S','s').replace('T','t').replace('U','u')
-                .replace('V','v').replace('W','w').replace('X','x').replace('Y','y')
-                .replace('Z','z');
+        return s.replace('A', 'a').
+                replace('B', 'b').replace('C', 'c').replace('D', 'd').replace('E', 'e')
+                .replace('F', 'f').replace('G', 'g').replace('H', 'h').replace('I', 'i')
+                .replace('J', 'j').replace('K', 'k').replace('L', 'l').replace('M', 'm')
+                .replace('N', 'n').replace('O', 'o').replace('P', 'p').replace('Q', 'q')
+                .replace('R', 'r').replace('S', 's').replace('T', 't').replace('U', 'u')
+                .replace('V', 'v').replace('W', 'w').replace('X', 'x').replace('Y', 'y')
+                .replace('Z', 'z');
     }
 
     public static void sleepMs(int ms) {
         try {
             sleep(ms);
+        } catch (InterruptedException ignored) {
         }
-        catch (InterruptedException ignored) {}
     }
 
     public static void stringToText(String filename, String outputText) throws IOException {
@@ -48,7 +48,8 @@ public class Utills {
         }
     }
 
-    public static void stringToHTML (String fileName, String data){
+    public static void stringToHTML(String fileName, String data) {
+        System.out.println(data);
         String head = "<html lang=\"en\">\n" +
                 "<head>\n" +
                 "<meta charset=\"utf-8\">\n" +
@@ -57,17 +58,18 @@ public class Utills {
                 "<body>\n";
         String tail = "</body>\n" +
                 "</html>";
-        try{
+        try {
             PrintWriter pw = new PrintWriter(fileName + ".html");
             pw.println(head);
 
             Gson gson = new Gson();
 
             ReviewFromWorker[] workersReviews = gson.fromJson(data, ReviewFromWorker[].class);
-
-            for (ReviewFromWorker review : workersReviews) {
-                String line = paintLineBySentiment(review);
+            int i = 0;
+            for (ReviewFromWorker finishedReview : workersReviews) {
+                String line = paintLineBySentiment(finishedReview);
                 pw.print(line);
+                i++;
             }
             pw.println(tail);
 
@@ -77,9 +79,9 @@ public class Utills {
         }
     }
 
-    private static String paintLineBySentiment(ReviewFromWorker review) {
+    private static String paintLineBySentiment(ReviewFromWorker finishedReview) {
         String line = "";
-        int sentiment = review.getSentimentAnalysis();
+        int sentiment = finishedReview.getSentimentAnalysis();
         switch (sentiment) {
             case 0:
                 line = line + "<l1 style=\"color:darkred;\">";
@@ -97,17 +99,37 @@ public class Utills {
                 line = line + "<l1 style=\"color:darkgreen;\">";
                 break;
         }
-
+        Boolean f = finishedReview.getSarcastic();
         String sarcastic = "";
-        if (review.getSarcastic()) {
+        if (finishedReview.getSarcastic()) {
             sarcastic = "Yes";
-        }
-        else {
+        } else {
             sarcastic = "No";
         }
 
-        line = line + review.getReview().getText() + review.getEntities() + " Is sarcastic?: " + sarcastic + "<br><br>";
+        line = line + finishedReview.getReview().getText() + finishedReview.getEntities() + " Is sarcastic?: " + sarcastic + "<br><br>";
 
         return line;
     }
+
+    public static int getKindLen(String[] args) {
+
+        if (args[args.length - 1].equals("terminate")) {
+            return (args.length - 2) / 2;
+        } else {
+            return (args.length - 1) / 2;
+        }
+    }
+
+    public static String[] fillFilesNames(String flag, int len, String[] args) {
+        String[] output = new String[len];
+        if (flag.equals("input")) {
+            System.arraycopy(args, 0, output, 0, len);
+        }
+        else {
+            if (len * 2 - len >= 0) System.arraycopy(args, len, output, len, len * 2 - len);
+        }
+        return output;
+    }
 }
+

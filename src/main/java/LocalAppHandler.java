@@ -39,6 +39,4 @@ public class LocalAppHandler {
     public void addToOutput(ReviewFromWorker rev) {
         outputMsgs.add(rev);
     }
-
-
 }

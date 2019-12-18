@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Manager {
 
-    public static  AtomicInteger counter = new AtomicInteger(0);
+    public static  AtomicInteger counter = new AtomicInteger(0); //todo:dont forget to remove
     public static ConcurrentHashMap<String, LocalAppHandler> summary = new ConcurrentHashMap<>();
     public static void main(String[] args) {
         System.out.println("Manager is RUNNING");
@@ -56,7 +56,7 @@ public class Manager {
                         // generate response message -> export summary to userApplication
                     } else { //body = n\n<key of input file>\n<user ID>
 //                        if (terminate && doneUsers) continue;
-//                        if (terminate) continue;//todo: need or no dont know
+                        if (terminate) continue;//todo: need or no dont know
 
                         msgCount = 0;
 
@@ -82,7 +82,7 @@ public class Manager {
                         System.out.println("the needed worker num is: " + neededWorkersCount);
                         summary.put(userID, new LocalAppHandler(reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                         while (neededWorkersCount != 0) {
-                            EC2.runMachines("worker", Integer.toString(workerCount));//todo:back to activate workers
+//                            EC2.runMachines("worker", Integer.toString(workerCount));//todo:back to activate workers
                             neededWorkersCount--;
                             workerCount++;
                         }
@@ -103,11 +103,13 @@ public class Manager {
 //                    doneUsers = true;
 //                }
 
-                if (terminate && doneUsers) {
+                if (terminate) {
                     // iterate over all userapps, wait untill all active messages = 0
                     boolean over = true;
+                    System.out.println("manager got terminate and checking if can OVER");
                     for (Map.Entry<String, LocalAppHandler> entry : summary.entrySet()) {
-                        if (entry.getValue().getLocalAppMsgCount().intValue() > 0) {
+                        if (entry.getValue().getLocalAppMsgCount().get() > 0) {
+                            System.out.println(entry.getValue().getLocalAppMsgCount().get());
                             over = false;
                             break;
                         }
@@ -127,8 +129,8 @@ public class Manager {
                     // his response message last.
 
                     // close manager, removing message is redundant as we closed the manager Q above.
-                    sqs.removeMessage("M", msg);
-                    EC2.closeManager();
+//                    sqs.removeMessage("M", msg);
+//                    EC2.closeManager();
                     return;
                 }
 

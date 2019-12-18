@@ -6,7 +6,6 @@ import com.amazonaws.util.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,7 +57,7 @@ public class LocalApplication {
             msg = localAppQ.getMessage(localAppQUrl);
             if (msg == null) {
                 try {
-                    sleep(50);
+                    sleep(100);
                     System.out.println("localApp is sleeping!");
                     continue;
                 } catch (InterruptedException e) {

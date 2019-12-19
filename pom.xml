@@ -26,7 +26,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>LocalApplication</mainClass>
+                            <mainClass>Manager</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

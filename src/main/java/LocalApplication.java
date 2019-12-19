@@ -26,9 +26,8 @@ public class LocalApplication {
         String bucketName = Utills.uncapitalizeChars(Credentials.getCredentials().getCredentials().getAWSAccessKeyId());
         SQS localAppQ = new SQS();
         String localAppQUrl = localAppQ.createUserQ(userAppID);
-        boolean terminate = false;
         if (args[args.length - 1].equals("terminate")) {
-            terminate = true;
+            localAppQ.sendMessage("M", "new task\nterminate\n" + userAppID);
             filesCount = (args.length - 2) / 2;
             nReviewPerWorker = args[args.length - 2];
         }
@@ -55,9 +54,7 @@ public class LocalApplication {
             localAppQ.sendMessage("M", "new task\n" + nReviewPerWorker + "\n" + inputFileKey + "\n" + userAppID + "\n"
                     + localAppQUrl + "\n" + bucketName + "\n" + i);
         }
-        if (terminate) {
-            localAppQ.sendMessage("M", "new task\nterminate\n" + userAppID);
-        }
+
 
         Message msg;
         String[] parsedMsg;

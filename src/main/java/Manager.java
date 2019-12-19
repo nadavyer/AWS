@@ -23,6 +23,7 @@ public class Manager {
         int workerCount = 0;
         boolean terminate = false;
         String userIdToTerminate = "";
+        ArrayList<String> rejectedUsers = new ArrayList<String>();
 
 
         try {
@@ -54,8 +55,12 @@ public class Manager {
                             // Wait for workers to finish ~ WQ=empty -> close all workers
                             // generate response message -> export summary to userApplication
                         } else { //body = n\n<key of input file>\n<user ID>
-                            if (terminate && !msgBody.split("\n")[2].equals(userIdToTerminate)) {
-                                sqs.sendMessage(msgBody.split("\n")[3], "close request\n");
+
+                            if (terminate && !summary.containsKey(msgBody.split("\n")[2]) && !msgBody.split("\n")[2].equals(userIdToTerminate)) {
+                                if(!rejectedUsers.contains(msgBody.split("\n")[3])) {
+                                    sqs.sendMessage(msgBody.split("\n")[3], "close request\n");
+                                    rejectedUsers.add(msgBody.split("\n")[3]);
+                                }
                                 continue;
                             }
 
@@ -113,12 +118,10 @@ public class Manager {
                             }
                             sqs.removeMessage("M", msg);
                             System.out.println("closing workers");
-                            pool.shutdown();
                             // close all workers
                             EC2.closeWorkers();
-
                             sqs.deleteQueues();
-
+                            pool.shutdown();
                             // Last queue is UserApp queue and it remains unclosed for the event which
                             // multiple users wait for an answer and  there's no guarantee which user will receive
                             // his response message last.
@@ -126,6 +129,7 @@ public class Manager {
                             // close manager, removing message is redundant as we closed the manager Q above.
                             System.out.println("closing manager");
                             EC2.closeManager();
+
                             return;
                         }
                         break;

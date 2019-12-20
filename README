@@ -6,23 +6,34 @@ Elad Shabat - 305630014
 Steps to run the program:
 
 1. Unzip the zip file
+
 2. Change directory into the unzipped folder
+
 *  From now we will refer to / as the project's directory
 
-3. At / run:
-		mvn clean compile assembly:single
+#Downloading the libraries:
+3. At / run: 	sudo apt-get install curl
+		curl -O https://jarbucketholderofec2.s3.amazonaws.com/ejml-0.23.jar
+		curl -O https://jarbucketholderofec2.s3.amazonaws.com/jollyday-0.4.7.jar
+		curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0.jar
+		curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0-models.jar
+
+** Change the <systemPath> in the pom.xml for each <dependency> to be /
+
 4. At / run:
+		mvn clean compile assembly:single
+5. At / run:
 		cd target
-5. At /target/ run:
-		mv dspAss1-1.0-jar-with-dependencies.jar ..
 6. At /target/ run:
+		mv dspAss1-1.0-SNAPSHOT-jar-with-dependencies.jar ..
+7. At /target/ run:
 		cd ..
-7. At / run:
-		java -jar dspAss1-1.0-jar-with-dependencies.jar <input file name> <output file name> <n> [terminate]
+8. At / run:
+		java -jar dspAss1-1.0-SNAPSHOT-jar-with-dependencies.jar <input file name1> <input file nameN> <output file name1> <output file nameN> <n> [terminate]
 * you can run the program on more than 1 input file.
 ** make sure the json files are in the right format
 
-8. When the program has finished running, a file named <output file name>.html will appear at /
+9. When the program has finished running, a file named <output file name>.html will appear at /
    You could run it using Firefox (for example) as:
    At / run:
    		firefox <output file name>.html
@@ -81,7 +92,6 @@ The manager wait for all the workers to finish their job, terminate them and onl
 
 As the system is defined, we might have workers doing most of the work and other workers doing very small amount of work, due to the fact we are not holding a balance factor of some sort,
 we could also let the manager deal out messages instead of each worker autonomously taking a message.
-
 
 
 

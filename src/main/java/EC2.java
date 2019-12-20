@@ -85,7 +85,7 @@ public class EC2 {
 
             request.setTagSpecifications(specifications);
             ec2.runInstances(request);
-            activeInstances = ec2.describeInstances().getReservations().get(0).getInstances();
+            activeInstances = getActiveInstances();
 
         } catch (AmazonServiceException ase) {
             System.out.println("Caught Exception: " + ase.getMessage());

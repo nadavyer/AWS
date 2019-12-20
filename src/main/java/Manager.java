@@ -119,9 +119,10 @@ public class Manager {
                             sqs.removeMessage("M", msg);
                             System.out.println("closing workers");
                             // close all workers
+                            pool.shutdown();
                             EC2.closeWorkers();
                             sqs.deleteQueues();
-                            pool.shutdown();
+
                             // Last queue is UserApp queue and it remains unclosed for the event which
                             // multiple users wait for an answer and  there's no guarantee which user will receive
                             // his response message last.

@@ -56,12 +56,13 @@ public class Manager {
                             // generate response message -> export summary to userApplication
                         } else { //body = n\n<key of input file>\n<user ID>
 
-                            if (terminate && !summary.containsKey(msgBody.split("\n")[2]) && !msgBody.split("\n")[2].equals(userIdToTerminate)) {
+                            if (terminate && !summary.containsKey(msgBody.split("\n")[2]) &&
+                                    !msgBody.split("\n")[2].equals(userIdToTerminate)) {
                                 if(!rejectedUsers.contains(msgBody.split("\n")[3])) {
                                     sqs.sendMessage(msgBody.split("\n")[3], "close request\n");
                                     rejectedUsers.add(msgBody.split("\n")[3]);
                                 }
-                                continue;
+                                break;
                             }
 
                             String[] parts = msgBody.split("\n");
@@ -85,7 +86,7 @@ public class Manager {
                             if(localAppHandler == null)
                                 summary.put(userID, new LocalAppHandler(fileId, reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                             else localAppHandler.addNewFile(fileId, reviewsCount); //add new file to an old user
-                            while (neededWorkersCount != 0) {
+                            while (neededWorkersCount != 0 && workerCount < 33) {
                             EC2.runMachines("worker", Integer.toString(workerCount));
                                 neededWorkersCount--;
                                 workerCount++;

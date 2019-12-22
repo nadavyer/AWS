@@ -23,7 +23,7 @@ public class TaskHandleWorkerOutput implements Runnable {
         Manager.summary.get(userId).getLocalAppMsgCount(fileId).decrementAndGet(); //-1 to msgCount of fileId
 
         if (Manager.summary.get(userId).getLocalAppMsgCount(fileId).get() == 0) { //if did all the file's msgs
-            System.out.println("THREAD IS MAKING OUTPUTFILE TO USER!!!!");
+            System.out.println("THREAD IS MAKING OUTPUTFILE TO USER");
             String fileName = "summary" + userId + fileId + ".json";
             File summaryFile = new File(fileName);
             System.out.println("remained msgs from user: " + Manager.summary.get(userId).getLocalAppMsgCount(fileId));

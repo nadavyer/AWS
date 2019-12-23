@@ -3,7 +3,6 @@ import com.amazonaws.util.IOUtils;
 import com.google.gson.Gson;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskHandleInputFile implements Callable<TitleReviews[]> {
 

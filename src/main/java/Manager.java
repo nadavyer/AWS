@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -19,7 +20,6 @@ public class Manager {
         System.out.println("Manager is RUNNING");
         ExecutorService pool = Executors.newFixedThreadPool(8);
         SQS sqs = new SQS();
-        Gson gson = new Gson();
         int workerCount = 0;
         boolean terminate = false;
         String userIdToTerminate = "";
@@ -46,9 +46,11 @@ public class Manager {
 
                         System.out.println(msgBody);
 
-                        if (msgBody.split("\n")[0].equals("terminate") && !terminate) { //terminate
-                            terminate = true;
-                            userIdToTerminate = msgBody.split("\n")[1];
+                        if (msgBody.split("\n")[0].equals("terminate")) { //terminate
+                            if (!terminate) {
+                                terminate = true;
+                                userIdToTerminate = msgBody.split("\n")[1];
+                            }
 
                             // DO NOT ACCEPT MORE INPUT FILES
 
@@ -73,27 +75,22 @@ public class Manager {
                             String bucketName = parts[4];
                             String fileId = parts[5];
 
-                            S3Object inputFile = S3.downloadFile(bucketName, inputFileKey); //download from bucket
-                            System.out.println("finished downloading");
-                            String inputData = IOUtils.toString(inputFile.getObjectContent());
-                            TitleReviews[] titleRev = gson.fromJson(inputData, TitleReviews[].class);
-                            AtomicInteger reviewsCount = getReviewsCount(titleRev);
-                            System.out.println("the number of review is: " + reviewsCount);
+
+                            Future<TitleReviews[]> titleRev = pool.submit(new TaskHandleInputFile(bucketName, inputFileKey));
+                            AtomicInteger reviewsCount = getReviewsCount(titleRev.get());
                             int neededWorkersCount = Math.max(1, (reviewsCount.getAndSet(reviewsCount.intValue()) / n) - workerCount);
-                            System.out.println("the needed worker num is: " + neededWorkersCount);
-                            // check if already handling with this user
-                            LocalAppHandler localAppHandler = summary.get(userID);
+                            LocalAppHandler localAppHandler = summary.get(userID); // check if already handling with this user
                             if(localAppHandler == null)
                                 summary.put(userID, new LocalAppHandler(fileId, reviewsCount, userQUrl, bucketName)); //add the current local app to memory
                             else localAppHandler.addNewFile(fileId, reviewsCount); //add new file to an old user
                             while (neededWorkersCount != 0 && workerCount < 33) {
-                            EC2.runMachines("worker", Integer.toString(workerCount));
+                                pool.submit(new TaskRunWorker(workerCount));
                                 neededWorkersCount--;
                                 workerCount++;
                             }
 
                             System.out.println("manager is filling jobs q of user");
-                            pool.execute(new TaskFillWorkerQ(titleRev, sqs, userID, fileId));
+                            pool.execute(new TaskFillWorkerQ(titleRev.get(), sqs, userID, fileId));
                             System.out.println("manager finished filling up user q ");
                         }
 

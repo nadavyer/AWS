@@ -20,6 +20,7 @@ public class LocalApplication {
         * java  -jar yourjar.jar inputFileName1 ... inputFileNameM outputFileName1 ... outputFileNameM nReviewPerWorker terminate
         */
         String userAppID = UUID.randomUUID().toString();
+        int userInterface = 0;
         int filesCount;
         String nReviewPerWorker;
         Credentials.setCredentials();
@@ -61,8 +62,9 @@ public class LocalApplication {
         while (true) {
             msg = localAppQ.getMessage(localAppQUrl);
             if (msg == null) {
-                Utills.sleepMs(100);
-                System.out.println("localApp is sleeping!");
+                Utills.sleepMs(1000);
+                inPRogressMsg(userInterface);
+                userInterface++;
                 continue;
             }
             parsedMsg = Objects.requireNonNull(msg).getBody().split("\n");
@@ -95,6 +97,15 @@ public class LocalApplication {
         }
 
         System.out.println("Done!");
+    }
+
+    private static void inPRogressMsg(int userInterfaceRequest) {
+        if (userInterfaceRequest % 6 ==  0) System.out.println("request in progress");
+        else if (userInterfaceRequest % 6 == 1) System.out.println("request in progress..");
+        else if (userInterfaceRequest % 6 == 2) System.out.println("request in progress....");
+        else if (userInterfaceRequest % 6 == 3) System.out.println("request in progress......");
+        else if (userInterfaceRequest % 6 == 4) System.out.println("request in progress........");
+        else if (userInterfaceRequest % 6 == 5) System.out.println("request in progress..........");
     }
 
     private static boolean managerIsUp() {

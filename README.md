@@ -1,13 +1,7 @@
 README - Distributed Assignment 1
 
-Nadav Yerushalmi - 204211056
-Elad Shabat - 305630014
 
 Steps to run the program:
-
-1. Unzip the zip file
-
-2. Change directory into the unzipped folder
 
 *  From now we will refer to / as the project's directory
 

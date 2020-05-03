@@ -7,10 +7,10 @@ Steps to run the program:
 
 # Downloading the libraries:
 3. At / run: 	sudo apt-get install curl
-		curl -O https://jarbucketholderofec2.s3.amazonaws.com/ejml-0.23.jar
-		curl -O https://jarbucketholderofec2.s3.amazonaws.com/jollyday-0.4.7.jar
-		curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0.jar
-		curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0-models.jar
+curl -O https://jarbucketholderofec2.s3.amazonaws.com/ejml-0.23.jar
+curl -O https://jarbucketholderofec2.s3.amazonaws.com/jollyday-0.4.7.jar
+curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0.jar
+curl -O https://jarbucketholderofec2.s3.amazonaws.com/stanford-corenlp-3.3.0-models.jar
 
 ** Change the <systemPath> in the pom.xml for each <dependency> to be /
 

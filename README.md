@@ -5,7 +5,7 @@ Steps to run the program:
 
 *  From now we will refer to / as the project's directory
 
-#Downloading the libraries:
+# Downloading the libraries:
 3. At / run: 	sudo apt-get install curl
 		curl -O https://jarbucketholderofec2.s3.amazonaws.com/ejml-0.23.jar
 		curl -O https://jarbucketholderofec2.s3.amazonaws.com/jollyday-0.4.7.jar
@@ -33,7 +33,7 @@ Steps to run the program:
    		firefox <output file name>.html
    		<Replace firefox with a given browser or text editor>
 
-# System initialization:
+### System initialization:
 
 We uploaded the manager.jar file, the worker.jar file and the libraries to a S3 bucket.
 
@@ -47,20 +47,20 @@ The time it took our program to finish working on the input files:  , and the n 
 
 Additional information:
 
-# Did you think for more than 2 minutes about security? Do not send your credentials in plain text!
+### Did you think for more than 2 minutes about security? Do not send your credentials in plain text!
 
 We used IAM role assignments and security group to allow "default" initialization for the AWS objects without adding our own credentials to the cloud.
 
 
 
-# Did you think about scalability? Will your program work properly when 1 million clients connected at the same time? How about 2 million? 1 billion? Scalability is very important aspect of the system, be sure it is scalable! system limitations?
+### Did you think about scalability? Will your program work properly when 1 million clients connected at the same time? How about 2 million? 1 billion? Scalability is very important aspect of the system, be sure it is scalable! system limitations?
 
 AWS allows unlimited amount of queues of the SQS service, so our manager implementation holds a hash table of clients (local applications) and holds a unique queue for each client, granting the system the ability to handle 1 client or more as needed (There is no limit to the amount of clients it can handle).
 In addition, we restricted the number of worker instances the program can activate, 1 worker for each n reviews that the client supply.
 
 
 
-# What about persistence? What if a node dies? What if a node stalls for a while? Have you taken care of all possible outcomes in the system? Think of more possible issues that might arise from failures. What did you do to solve it? What about broken communications? Be sure to handle all fail-cases!
+### What about persistence? What if a node dies? What if a node stalls for a while? Have you taken care of all possible outcomes in the system? Think of more possible issues that might arise from failures. What did you do to solve it? What about broken communications? Be sure to handle all fail-cases!
 
 If a node(aka worker instance) dies or stalls a message for too long, the Visibility Timeout mechanism handles it.
 The way it works is once a message has been taken out of a queue, it's considered "in-flight" and is now invisible for 180 seconds while the instance handles it.
@@ -69,20 +69,20 @@ If the instance dies or stalls, the timer kicks in and "returns" the message to 
 
 
 
-# Threads in your application, when is it a good idea? When is it bad? Invest time to think about threads in your application!
+### Threads in your application, when is it a good idea? When is it bad? Invest time to think about threads in your application!
 
 Adding threads to the application might look effective, due to the fact we are currently concurrently handling assignments.
 We implemented 2 runnable classes to help the manager with new tasks and the responds from the workers, helping with communications that takes more time.
 In practice, this adds a layer of deep complexity to the worker implementation.
 
 
-# Did you manage the termination process?
+### Did you manage the termination process?
 
 we implement that by sending a new task terminate from the user how wrote that to the manager. The manager stop receiving new input files from new users, but do serve the user who send the termination message.
 The manager wait for all the workers to finish their job, terminate them and only then terminate itself.
 
 
-# Are all your workers working hard? Or some are slacking? Why?
+### Are all your workers working hard? Or some are slacking? Why?
 
 As the system is defined, we might have workers doing most of the work and other workers doing very small amount of work, due to the fact we are not holding a balance factor of some sort,
 we could also let the manager deal out messages instead of each worker autonomously taking a message.
